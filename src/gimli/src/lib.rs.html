@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="Source to the Rust file `src/lib.rs`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang">
+
+    <title>lib.rs.html -- source</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content source"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+</pre><pre class='rust '>
+<span class='doccomment'>//! A lazy, zero-copy parser for the DWARF debugging information format.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! * Zero-copy: everything is just a reference to the original input buffer. No</span>
+<span class='doccomment'>//!   copies of the input data ever get made.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! * Lazy: only the compilation units&#39; entries that you iterate over get</span>
+<span class='doccomment'>//!   parsed, and only as deep as you ask. Skip over a compilation unit and its</span>
+<span class='doccomment'>//!   entries don&#39;t get parsed.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! * Bring your own object file parser: `gimli` isn&#39;t coupled to any platform</span>
+<span class='doccomment'>//!   or object file format. Use your own ELF parser on Linux or a Mach-O parser</span>
+<span class='doccomment'>//!   on OSX.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! This library primarily targets the fourth edition of the standard (the most</span>
+<span class='doccomment'>//! recent, at time of writing).</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! ## Example Usage</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Print out all of the functions in a compilation unit.</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! ```rust,no_run</span>
+<span class='doccomment'>//! use gimli;</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! # let debug_info_buf = [];</span>
+<span class='doccomment'>//! # let debug_abbrev_buf = [];</span>
+<span class='doccomment'>//! # let read_debug_info = || &amp;debug_info_buf;</span>
+<span class='doccomment'>//! # let read_debug_abbrev = || &amp;debug_abbrev_buf;</span>
+<span class='doccomment'>//! // Read the .debug_info and .debug_abbrev sections with whatever object</span>
+<span class='doccomment'>//! // loader you&#39;re using.</span>
+<span class='doccomment'>//! let debug_info = gimli::DebugInfo::&lt;gimli::LittleEndian&gt;::new(read_debug_info());</span>
+<span class='doccomment'>//! let debug_abbrev = gimli::DebugAbbrev::&lt;gimli::LittleEndian&gt;::new(read_debug_abbrev());</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! // Grab the first compilation unit.</span>
+<span class='doccomment'>//! let unit = debug_info.units().next()</span>
+<span class='doccomment'>//!     .expect(&quot;Should have at least one unit&quot;)</span>
+<span class='doccomment'>//!     .expect(&quot;and it should parse OK&quot;);</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! // Parse the abbreviations for this compilation unit.</span>
+<span class='doccomment'>//! let abbrevs = unit.abbreviations(debug_abbrev)</span>
+<span class='doccomment'>//!     .expect(&quot;Should parse the abbreviations OK&quot;);</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! // Get a cursor for iterating over this unit&#39;s entries.</span>
+<span class='doccomment'>//! let mut entries = unit.entries(&amp;abbrevs);</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! // Keep iterating entries while the cursor is not exhausted.</span>
+<span class='doccomment'>//! while let Some((_, entry)) = entries.next_dfs().expect(&quot;Should parse next entry&quot;) {</span>
+<span class='doccomment'>//!     // If we find an entry for a function, print it.</span>
+<span class='doccomment'>//!     if entry.tag() == gimli::DW_TAG_subprogram {</span>
+<span class='doccomment'>//!         println!(&quot;Found a function: {:?}&quot;, entry);</span>
+<span class='doccomment'>//!     }</span>
+<span class='doccomment'>//! }</span>
+<span class='doccomment'>//! ```</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! See the</span>
+<span class='doccomment'>//! [`examples/dwarfdump.rs`](https://github.com/fitzgen/gimli/blob/master/examples/dwarfdump.rs)</span>
+<span class='doccomment'>//! program for a complete example program.</span>
+
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>deny</span>(<span class='ident'>missing_docs</span>)]</span>
+
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>byteorder</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>leb128</span>;
+
+<span class='kw'>mod</span> <span class='ident'>constants</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>constants</span>::<span class='op'>*</span>;
+
+<span class='kw'>mod</span> <span class='ident'>endianity</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>endianity</span>::{<span class='ident'>Endianity</span>, <span class='ident'>EndianBuf</span>, <span class='ident'>LittleEndian</span>, <span class='ident'>BigEndian</span>};
+
+<span class='kw'>mod</span> <span class='ident'>parser</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>parser</span>::{<span class='ident'>Error</span>, <span class='ident'>ParseResult</span>, <span class='ident'>Format</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>parser</span>::{<span class='ident'>DebugLocOffset</span>, <span class='ident'>DebugMacinfoOffset</span>, <span class='ident'>UnitOffset</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>parser</span>::{<span class='ident'>DebugInfo</span>, <span class='ident'>DebugInfoOffset</span>, <span class='ident'>UnitHeadersIter</span>, <span class='ident'>UnitHeader</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>parser</span>::{<span class='ident'>DebugTypes</span>, <span class='ident'>DebugTypesOffset</span>, <span class='ident'>TypeUnitHeadersIter</span>, <span class='ident'>TypeUnitHeader</span>};
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>parser</span>::{<span class='ident'>EntriesCursor</span>, <span class='ident'>DebuggingInformationEntry</span>, <span class='ident'>AttrsIter</span>, <span class='ident'>Attribute</span>, <span class='ident'>AttributeValue</span>};
+
+<span class='kw'>mod</span> <span class='ident'>abbrev</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>abbrev</span>::{<span class='ident'>DebugAbbrev</span>, <span class='ident'>DebugAbbrevOffset</span>, <span class='ident'>Abbreviations</span>, <span class='ident'>Abbreviation</span>,
+                 <span class='ident'>AttributeSpecification</span>};
+
+<span class='kw'>mod</span> <span class='ident'>aranges</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>aranges</span>::{<span class='ident'>DebugAranges</span>, <span class='ident'>ArangeEntryIter</span>, <span class='ident'>ArangeEntry</span>};
+
+<span class='kw'>mod</span> <span class='ident'>line</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>line</span>::<span class='op'>*</span>;
+
+<span class='kw'>mod</span> <span class='ident'>str</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>str</span>::<span class='op'>*</span>;
+</pre>
+</section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "gimli";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../main.js"></script>
+    
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>

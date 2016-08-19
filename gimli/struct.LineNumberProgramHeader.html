@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `LineNumberProgramHeader` struct in crate `gimli`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, LineNumberProgramHeader">
+
+    <title>gimli::LineNumberProgramHeader - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>gimli</a></p><script>window.sidebarCurrent = {name: 'LineNumberProgramHeader', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>gimli</a>::<wbr><a class='struct' href=''>LineNumberProgramHeader</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-3814' class='srclink' href='../src/gimli/src/line.rs.html#833-900' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct LineNumberProgramHeader&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span> {
+    // some fields omitted
+}</pre><div class='docblock'><p>A header for a line number program in the <code>.debug_line</code> section, as defined
+in section 6.2.4 of the standard.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;Endian&gt; <a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-3832' class='srclink' href='../src/gimli/src/line.rs.html#902-1117' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(debug_line: <a class='struct' href='../gimli/struct.DebugLine.html' title='gimli::DebugLine'>DebugLine</a>&lt;'input,&nbsp;Endian&gt;, offset: <a class='struct' href='../gimli/struct.DebugLineOffset.html' title='gimli::DebugLineOffset'>DebugLineOffset</a>, address_size: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>) -&gt; <a class='type' href='../gimli/type.ParseResult.html' title='gimli::ParseResult'>ParseResult</a>&lt;<a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt;&gt;</code></h4>
+<div class='docblock'><p>Parse the line number program header at the given <code>offset</code> in the
+<code>.debug_line</code> section.</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>gimli</span>::{<span class='ident'>DebugLine</span>, <span class='ident'>DebugLineOffset</span>, <span class='ident'>LineNumberProgramHeader</span>, <span class='ident'>LittleEndian</span>};
+
+<span class='kw'>let</span> <span class='ident'>debug_line</span> <span class='op'>=</span> <span class='ident'>DebugLine</span>::<span class='op'>&lt;</span><span class='ident'>LittleEndian</span><span class='op'>&gt;</span>::<span class='ident'>new</span>(<span class='ident'>read_debug_line_section_somehow</span>());
+
+<span class='comment'>// In a real example, we&#39;d grab the offset via a compilation unit</span>
+<span class='comment'>// entry&#39;s `DW_AT_stmt_list` attribute, and the address size from that</span>
+<span class='comment'>// unit directly.</span>
+<span class='kw'>let</span> <span class='ident'>offset</span> <span class='op'>=</span> <span class='ident'>DebugLineOffset</span>(<span class='number'>0</span>);
+<span class='kw'>let</span> <span class='ident'>address_size</span> <span class='op'>=</span> <span class='number'>8</span>;
+
+<span class='kw'>let</span> <span class='ident'>header</span> <span class='op'>=</span> <span class='ident'>LineNumberProgramHeader</span>::<span class='ident'>new</span>(<span class='ident'>debug_line</span>, <span class='ident'>offset</span>, <span class='ident'>address_size</span>)
+    .<span class='ident'>expect</span>(<span class='string'>&quot;should have found a header at that offset, and parsed it OK&quot;</span>);</pre>
+</div><h4 id='method.unit_length' class='method'><code>fn <a href='#method.unit_length' class='fnname'>unit_length</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a></code></h4>
+<div class='docblock'><p>Return the length of the line number program and header, not including
+the length of the encoded length itself.</p>
+</div><h4 id='method.version' class='method'><code>fn <a href='#method.version' class='fnname'>version</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u16.html'>u16</a></code></h4>
+<div class='docblock'><p>Get the version of this header&#39;s line program.</p>
+</div><h4 id='method.header_length' class='method'><code>fn <a href='#method.header_length' class='fnname'>header_length</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a></code></h4>
+<div class='docblock'><p>Get the length of the encoded line number program header, not including
+the length of the encoded length itself.</p>
+</div><h4 id='method.minimum_instruction_length' class='method'><code>fn <a href='#method.minimum_instruction_length' class='fnname'>minimum_instruction_length</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a></code></h4>
+<div class='docblock'><p>Get the minimum instruction length any opcode in this header&#39;s line
+program may have.</p>
+</div><h4 id='method.maximum_operations_per_instruction' class='method'><code>fn <a href='#method.maximum_operations_per_instruction' class='fnname'>maximum_operations_per_instruction</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a></code></h4>
+<div class='docblock'><p>Get the maximum number of operations each instruction in this header&#39;s
+line program may have.</p>
+</div><h4 id='method.default_is_stmt' class='method'><code>fn <a href='#method.default_is_stmt' class='fnname'>default_is_stmt</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>Get the default value of the <code>is_stmt</code> register for this header&#39;s line
+program.</p>
+</div><h4 id='method.line_base' class='method'><code>fn <a href='#method.line_base' class='fnname'>line_base</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i8.html'>i8</a></code></h4>
+<div class='docblock'><p>Get the line base for this header&#39;s line program.</p>
+</div><h4 id='method.line_range' class='method'><code>fn <a href='#method.line_range' class='fnname'>line_range</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a></code></h4>
+<div class='docblock'><p>Get the line range for this header&#39;s line program.</p>
+</div><h4 id='method.opcode_base' class='method'><code>fn <a href='#method.opcode_base' class='fnname'>opcode_base</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a></code></h4>
+<div class='docblock'><p>Get opcode base for this header&#39;s line program.</p>
+</div><h4 id='method.standard_opcode_lengths' class='method'><code>fn <a href='#method.standard_opcode_lengths' class='fnname'>standard_opcode_lengths</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'input [</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></h4>
+<div class='docblock'><p>The byte lengths of each standard opcode in this header&#39;s line program.</p>
+</div><h4 id='method.include_directories' class='method'><code>fn <a href='#method.include_directories' class='fnname'>include_directories</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>&amp;<a class='struct' href='https://doc.rust-lang.org/nightly/std/ffi/c_str/struct.CStr.html' title='std::ffi::c_str::CStr'>CStr</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></h4>
+<div class='docblock'><p>Get the set of include directories for this header&#39;s line program.</p>
+
+<p>The compilation&#39;s current directory is not included in the return value,
+but is implicitly considered to be in the set per spec.</p>
+</div><h4 id='method.file_names' class='method'><code>fn <a href='#method.file_names' class='fnname'>file_names</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a><a class='struct' href='../gimli/struct.FileEntry.html' title='gimli::FileEntry'>FileEntry</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></code></h4>
+<div class='docblock'><p>Get the list of source files that appear in this header&#39;s line program.</p>
+</div><h4 id='method.opcodes' class='method'><code>fn <a href='#method.opcodes' class='fnname'>opcodes</a>(&amp;self) -&gt; <a class='struct' href='../gimli/struct.OpcodesIter.html' title='gimli::OpcodesIter'>OpcodesIter</a>&lt;'input,&nbsp;Endian&gt;</code></h4>
+<div class='docblock'><p>Iterate over the opcodes in this header&#39;s line number program, parsing
+them as we go.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;Endian:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a> for <a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-3683' class='srclink' href='../src/gimli/src/line.rs.html#832' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>This method tests for <code>self</code> and <code>other</code> values to be equal, and is used by <code>==</code>. <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq">Read more</a></p>
+</div><h4 id='method.ne' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, __arg_0: &amp;<a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt;) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>This method tests for <code>!=</code>.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;Endian:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html' title='core::cmp::Eq'>Eq</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html' title='core::cmp::Eq'>Eq</a> for <a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-3752' class='srclink' href='../src/gimli/src/line.rs.html#832' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;Endian:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-3772' class='srclink' href='../src/gimli/src/line.rs.html#832' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;Endian:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-3794' class='srclink' href='../src/gimli/src/line.rs.html#832' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt;</code></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "gimli";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `EntriesCursor` struct in crate `gimli`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, EntriesCursor">
+
+    <title>gimli::EntriesCursor - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>gimli</a></p><script>window.sidebarCurrent = {name: 'EntriesCursor', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>gimli</a>::<wbr><a class='struct' href=''>EntriesCursor</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-2173' class='srclink' href='../src/gimli/src/parser.rs.html#2225-2234' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct EntriesCursor&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian&gt; <span class='where'>where 'input: 'unit, Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a> + 'unit</span> {
+    // some fields omitted
+}</pre><div class='docblock'><p>A cursor into the Debugging Information Entries tree for a compilation unit.</p>
+
+<p>The <code>EntriesCursor</code> can traverse the DIE tree in either DFS order, or skip
+to the next sibling of the entry the cursor is currently pointing to.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian&gt; <a class='struct' href='../gimli/struct.EntriesCursor.html' title='gimli::EntriesCursor'>EntriesCursor</a>&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2183' class='srclink' href='../src/gimli/src/parser.rs.html#2236-2606' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.current' class='method'><code>fn <a href='#method.current' class='fnname'>current</a>&lt;'me&gt;(&amp;'me self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;'me <a class='struct' href='../gimli/struct.DebuggingInformationEntry.html' title='gimli::DebuggingInformationEntry'>DebuggingInformationEntry</a>&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian&gt;&gt;</code></h4>
+<div class='docblock'><p>Get a reference to the entry that the cursor is currently pointing to.</p>
+</div><h4 id='method.next_entry' class='method'><code>fn <a href='#method.next_entry' class='fnname'>next_entry</a>(&amp;mut self) -&gt; <a class='type' href='../gimli/type.ParseResult.html' title='gimli::ParseResult'>ParseResult</a>&lt;<a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;&gt;</code></h4>
+<div class='docblock'><p>Move the cursor to the next DIE in the tree.</p>
+
+<p>Returns <code>Some</code> if there is a next entry, even if this entry is null.
+If there is no next entry, then <code>None</code> is returned.</p>
+</div><h4 id='method.next_dfs' class='method'><code>fn <a href='#method.next_dfs' class='fnname'>next_dfs</a>&lt;'me&gt;(&amp;'me mut self) -&gt; <a class='type' href='../gimli/type.ParseResult.html' title='gimli::ParseResult'>ParseResult</a>&lt;<a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>(</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.isize.html'>isize</a>, &amp;'me <a class='struct' href='../gimli/struct.DebuggingInformationEntry.html' title='gimli::DebuggingInformationEntry'>DebuggingInformationEntry</a>&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian&gt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>)</a>&gt;&gt;</code></h4>
+<div class='docblock'><p>Move the cursor to the next DIE in the tree in DFS order.</p>
+
+<p>Upon successful movement of the cursor, return the delta traversal
+depth and the entry:</p>
+
+<ul>
+<li><p>If we moved down into the previous current entry&#39;s children, we get
+<code>Some((1, entry))</code>.</p></li>
+<li><p>If we moved to the previous current entry&#39;s sibling, we get
+<code>Some((0, entry))</code>.</p></li>
+<li><p>If the previous entry does not have any siblings and we move up to
+its parent&#39;s next sibling, then we get <code>Some((-1, entry))</code>. Note that
+if the parent doesn&#39;t have a next sibling, then it could go up to the
+parent&#39;s parent&#39;s next sibling and return <code>Some((-2, entry))</code>, etc.</p></li>
+</ul>
+
+<p>If there is no next entry, then <code>None</code> is returned.</p>
+
+<p>Here is an example that finds the first entry in a compilation unit that
+does not have any children.</p>
+
+<pre class='rust rust-example-rendered'>
+
+<span class='kw'>let</span> <span class='ident'>unit</span> <span class='op'>=</span> <span class='ident'>get_some_unit</span>();
+<span class='kw'>let</span> <span class='ident'>abbrevs</span> <span class='op'>=</span> <span class='ident'>get_abbrevs_for_unit</span>(<span class='kw-2'>&amp;</span><span class='ident'>unit</span>);
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>first_entry_with_no_children</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>cursor</span> <span class='op'>=</span> <span class='ident'>unit</span>.<span class='ident'>entries</span>(<span class='kw-2'>&amp;</span><span class='ident'>abbrevs</span>);
+
+<span class='comment'>// Move the cursor to the root.</span>
+<span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>cursor</span>.<span class='ident'>next_dfs</span>().<span class='ident'>unwrap</span>().<span class='ident'>is_some</span>());
+
+<span class='comment'>// Keep looping while the cursor is moving deeper into the DIE tree.</span>
+<span class='kw'>while</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>((<span class='ident'>delta_depth</span>, <span class='ident'>current</span>)) <span class='op'>=</span> <span class='ident'>cursor</span>.<span class='ident'>next_dfs</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Should parse next dfs&quot;</span>) {
+    <span class='comment'>// 0 means we moved to a sibling, a negative number means we went back</span>
+    <span class='comment'>// up to a parent&#39;s sibling. In either case, bail out of the loop because</span>
+    <span class='comment'>//  we aren&#39;t going deeper into the tree anymore.</span>
+    <span class='kw'>if</span> <span class='ident'>delta_depth</span> <span class='op'>&lt;=</span> <span class='number'>0</span> {
+        <span class='kw'>break</span>;
+    }
+
+    <span class='ident'>first_entry_with_no_children</span> <span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='ident'>current</span>.<span class='ident'>clone</span>());
+}
+
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;The first entry with no children is {:?}&quot;</span>,
+         <span class='ident'>first_entry_with_no_children</span>.<span class='ident'>unwrap</span>());</pre>
+</div><h4 id='method.next_sibling' class='method'><code>fn <a href='#method.next_sibling' class='fnname'>next_sibling</a>&lt;'me&gt;(&amp;'me mut self) -&gt; <a class='type' href='../gimli/type.ParseResult.html' title='gimli::ParseResult'>ParseResult</a>&lt;<a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;'me <a class='struct' href='../gimli/struct.DebuggingInformationEntry.html' title='gimli::DebuggingInformationEntry'>DebuggingInformationEntry</a>&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian&gt;&gt;&gt;</code></h4>
+<div class='docblock'><p>Move the cursor to the next sibling DIE of the current one.</p>
+
+<p>Returns <code>Ok(Some(entry))</code> when the cursor has been moved to
+the next sibling, <code>Ok(None)</code> when there is no next sibling.</p>
+
+<p>The depth of the cursor is never changed if this method returns <code>Ok</code>.
+Once <code>Ok(None)</code> is returned, this method will continue to return
+<code>Ok(None)</code> until either <code>next_entry</code> or <code>next_dfs</code> is called.</p>
+
+<p>Here is an example that iterates over all of the direct children of the
+root entry:</p>
+
+<pre class='rust rust-example-rendered'>
+
+<span class='kw'>let</span> <span class='ident'>unit</span> <span class='op'>=</span> <span class='ident'>get_some_unit</span>();
+<span class='kw'>let</span> <span class='ident'>abbrevs</span> <span class='op'>=</span> <span class='ident'>get_abbrevs_for_unit</span>(<span class='kw-2'>&amp;</span><span class='ident'>unit</span>);
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>cursor</span> <span class='op'>=</span> <span class='ident'>unit</span>.<span class='ident'>entries</span>(<span class='kw-2'>&amp;</span><span class='ident'>abbrevs</span>);
+
+<span class='comment'>// Move the cursor to the root.</span>
+<span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>cursor</span>.<span class='ident'>next_dfs</span>().<span class='ident'>unwrap</span>().<span class='ident'>is_some</span>());
+
+<span class='comment'>// Move the cursor to the root&#39;s first child.</span>
+<span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>cursor</span>.<span class='ident'>next_dfs</span>().<span class='ident'>unwrap</span>().<span class='ident'>is_some</span>());
+
+<span class='comment'>// Iterate the root&#39;s children.</span>
+<span class='kw'>loop</span> {
+    {
+        <span class='kw'>let</span> <span class='ident'>current</span> <span class='op'>=</span> <span class='ident'>cursor</span>.<span class='ident'>current</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Should be at an entry&quot;</span>);
+        <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?} is a child of the root&quot;</span>, <span class='ident'>current</span>);
+    }
+
+    <span class='kw'>if</span> <span class='ident'>cursor</span>.<span class='ident'>next_sibling</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Should parse next sibling&quot;</span>).<span class='ident'>is_none</span>() {
+        <span class='kw'>break</span>;
+    }
+}</pre>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../gimli/struct.EntriesCursor.html' title='gimli::EntriesCursor'>EntriesCursor</a>&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian&gt; <span class='where'>where 'input: 'unit, Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a> + 'unit</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2147' class='srclink' href='../src/gimli/src/parser.rs.html#2224' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../gimli/struct.EntriesCursor.html' title='gimli::EntriesCursor'>EntriesCursor</a>&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian&gt; <span class='where'>where 'input: 'unit, Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a> + 'unit</span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2161' class='srclink' href='../src/gimli/src/parser.rs.html#2224' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../gimli/struct.EntriesCursor.html' title='gimli::EntriesCursor'>EntriesCursor</a>&lt;'input,&nbsp;'abbrev,&nbsp;'unit,&nbsp;Endian&gt;</code></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "gimli";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

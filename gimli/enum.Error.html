@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Error` enum in crate `gimli`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Error">
+
+    <title>gimli::Error - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>gimli</a></p><script>window.sidebarCurrent = {name: 'Error', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content enum">
+<h1 class='fqn'><span class='in-band'>Enum <a href='index.html'>gimli</a>::<wbr><a class='enum' href=''>Error</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-1108' class='srclink' href='../src/gimli/src/parser.rs.html#23-74' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum Error {
+    BadUnsignedLeb128,
+    BadSignedLeb128,
+    AbbreviationTagZero,
+    AttributeFormZero,
+    BadHasChildren,
+    BadLength,
+    UnknownForm,
+    ExpectedZero,
+    DuplicateAbbreviationCode,
+    DuplicateArange,
+    UnknownReservedLength,
+    UnknownVersion,
+    UnitHeaderLengthTooShort,
+    UnknownAbbreviation,
+    UnexpectedEof,
+    UnknownStandardOpcode(<a class='struct' href='../gimli/struct.DwLns.html' title='gimli::DwLns'>DwLns</a>),
+    UnknownExtendedOpcode(<a class='struct' href='../gimli/struct.DwLne.html' title='gimli::DwLne'>DwLne</a>),
+    UnsupportedAddressSize(<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>),
+    UnsupportedFieldSize(<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>),
+    MinimumInstructionLengthZero,
+    MaximumOperationsPerInstructionZero,
+    LineRangeZero,
+    OpcodeBaseZero,
+}</pre><div class='docblock'><p>An error that occurred when parsing.</p>
+</div><h2 class='variants'>Variants</h2>
+<span id='variant.BadUnsignedLeb128' class='variant'><code>BadUnsignedLeb128</code></span><div class='docblock'><p>An error parsing an unsigned LEB128 value.</p>
+</div><span id='variant.BadSignedLeb128' class='variant'><code>BadSignedLeb128</code></span><div class='docblock'><p>An error parsing a signed LEB128 value.</p>
+</div><span id='variant.AbbreviationTagZero' class='variant'><code>AbbreviationTagZero</code></span><div class='docblock'><p>An abbreviation declared that its tag is zero, but zero is reserved for
+null records.</p>
+</div><span id='variant.AttributeFormZero' class='variant'><code>AttributeFormZero</code></span><div class='docblock'><p>An attribute specification declared that its form is zero, but zero is
+reserved for null records.</p>
+</div><span id='variant.BadHasChildren' class='variant'><code>BadHasChildren</code></span><div class='docblock'><p>The abbreviation&#39;s has-children byte was not one of
+<code>DW_CHILDREN_{yes,no}</code>.</p>
+</div><span id='variant.BadLength' class='variant'><code>BadLength</code></span><div class='docblock'><p>The specified length is impossible.</p>
+</div><span id='variant.UnknownForm' class='variant'><code>UnknownForm</code></span><div class='docblock'><p>Found an unknown <code>DW_FORM_*</code> type.</p>
+</div><span id='variant.ExpectedZero' class='variant'><code>ExpectedZero</code></span><div class='docblock'><p>Expected a zero, found something else.</p>
+</div><span id='variant.DuplicateAbbreviationCode' class='variant'><code>DuplicateAbbreviationCode</code></span><div class='docblock'><p>Found an abbreviation code that has already been used.</p>
+</div><span id='variant.DuplicateArange' class='variant'><code>DuplicateArange</code></span><div class='docblock'><p>Found a duplicate arange.</p>
+</div><span id='variant.UnknownReservedLength' class='variant'><code>UnknownReservedLength</code></span><div class='docblock'><p>Found an unknown reserved length value.</p>
+</div><span id='variant.UnknownVersion' class='variant'><code>UnknownVersion</code></span><div class='docblock'><p>Found an unknown DWARF version.</p>
+</div><span id='variant.UnitHeaderLengthTooShort' class='variant'><code>UnitHeaderLengthTooShort</code></span><div class='docblock'><p>The unit header&#39;s claimed length is too short to even hold the header
+itself.</p>
+</div><span id='variant.UnknownAbbreviation' class='variant'><code>UnknownAbbreviation</code></span><div class='docblock'><p>Found a record with an unknown abbreviation code.</p>
+</div><span id='variant.UnexpectedEof' class='variant'><code>UnexpectedEof</code></span><div class='docblock'><p>Hit the end of input before it was expected.</p>
+</div><span id='variant.UnknownStandardOpcode' class='variant'><code>UnknownStandardOpcode(<a class='struct' href='../gimli/struct.DwLns.html' title='gimli::DwLns'>DwLns</a>)</code></span><div class='docblock'><p>Found an unknown standard opcode.</p>
+</div><span id='variant.UnknownExtendedOpcode' class='variant'><code>UnknownExtendedOpcode(<a class='struct' href='../gimli/struct.DwLne.html' title='gimli::DwLne'>DwLne</a>)</code></span><div class='docblock'><p>Found an unknown extended opcode.</p>
+</div><span id='variant.UnsupportedAddressSize' class='variant'><code>UnsupportedAddressSize(<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>)</code></span><div class='docblock'><p>The specified address size is not supported.</p>
+</div><span id='variant.UnsupportedFieldSize' class='variant'><code>UnsupportedFieldSize(<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>)</code></span><div class='docblock'><p>The specified field size is not supported.</p>
+</div><span id='variant.MinimumInstructionLengthZero' class='variant'><code>MinimumInstructionLengthZero</code></span><div class='docblock'><p>The minimum instruction length must not be zero.</p>
+</div><span id='variant.MaximumOperationsPerInstructionZero' class='variant'><code>MaximumOperationsPerInstructionZero</code></span><div class='docblock'><p>The maximum operations per instruction must not be zero.</p>
+</div><span id='variant.LineRangeZero' class='variant'><code>LineRangeZero</code></span><div class='docblock'><p>The line range must not be zero.</p>
+</div><span id='variant.OpcodeBaseZero' class='variant'><code>OpcodeBaseZero</code></span><div class='docblock'><p>The opcode base must not be zero.</p>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html' title='core::cmp::Eq'>Eq</a> for <a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1035' class='srclink' href='../src/gimli/src/parser.rs.html#22' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a> for <a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1042' class='srclink' href='../src/gimli/src/parser.rs.html#22' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>This method tests for <code>self</code> and <code>other</code> values to be equal, and is used by <code>==</code>. <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq">Read more</a></p>
+</div><h4 id='method.ne' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, __arg_0: &amp;<a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+<div class='docblock'><p>This method tests for <code>!=</code>.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1069' class='srclink' href='../src/gimli/src/parser.rs.html#22' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1070' class='srclink' href='../src/gimli/src/parser.rs.html#22' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a></code></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1077' class='srclink' href='../src/gimli/src/parser.rs.html#22' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html' title='core::fmt::Display'>Display</a> for <a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1136' class='srclink' href='../src/gimli/src/parser.rs.html#76-80' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt-1' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>,&nbsp;<a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html' title='core::fmt::Error'>Error</a>&gt;</code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>Error</a> for <a class='enum' href='../gimli/enum.Error.html' title='gimli::Error'>Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-1140' class='srclink' href='../src/gimli/src/parser.rs.html#82-128' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.description' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#tymethod.description' class='fnname'>description</a>(&amp;self) -&gt; &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
+<div class='docblock'><p>A short description of the error. <a href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html#tymethod.description">Read more</a></p>
+</div><h4 id='method.cause' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#method.cause' class='fnname'>cause</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>Error</a>&gt;</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></h4>
+<div class='docblock'><p>The lower-level cause of this error, if any.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "gimli";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

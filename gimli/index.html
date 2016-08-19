@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `gimli` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, gimli">
+
+    <title>gimli - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'gimli', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content mod">
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>gimli</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/gimli/src/lib.rs.html#1-87' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>A lazy, zero-copy parser for the DWARF debugging information format.</p>
+
+<ul>
+<li><p>Zero-copy: everything is just a reference to the original input buffer. No
+copies of the input data ever get made.</p></li>
+<li><p>Lazy: only the compilation units&#39; entries that you iterate over get
+parsed, and only as deep as you ask. Skip over a compilation unit and its
+entries don&#39;t get parsed.</p></li>
+<li><p>Bring your own object file parser: <code>gimli</code> isn&#39;t coupled to any platform
+or object file format. Use your own ELF parser on Linux or a Mach-O parser
+on OSX.</p></li>
+</ul>
+
+<p>This library primarily targets the fourth edition of the standard (the most
+recent, at time of writing).</p>
+
+<h2 id='example-usage' class='section-header'><a href='#example-usage'>Example Usage</a></h2>
+<p>Print out all of the functions in a compilation unit.</p>
+
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>gimli</span>;
+
+<span class='comment'>// Read the .debug_info and .debug_abbrev sections with whatever object</span>
+<span class='comment'>// loader you&#39;re using.</span>
+<span class='kw'>let</span> <span class='ident'>debug_info</span> <span class='op'>=</span> <span class='ident'>gimli</span>::<span class='ident'>DebugInfo</span>::<span class='op'>&lt;</span><span class='ident'>gimli</span>::<span class='ident'>LittleEndian</span><span class='op'>&gt;</span>::<span class='ident'>new</span>(<span class='ident'>read_debug_info</span>());
+<span class='kw'>let</span> <span class='ident'>debug_abbrev</span> <span class='op'>=</span> <span class='ident'>gimli</span>::<span class='ident'>DebugAbbrev</span>::<span class='op'>&lt;</span><span class='ident'>gimli</span>::<span class='ident'>LittleEndian</span><span class='op'>&gt;</span>::<span class='ident'>new</span>(<span class='ident'>read_debug_abbrev</span>());
+
+<span class='comment'>// Grab the first compilation unit.</span>
+<span class='kw'>let</span> <span class='ident'>unit</span> <span class='op'>=</span> <span class='ident'>debug_info</span>.<span class='ident'>units</span>().<span class='ident'>next</span>()
+    .<span class='ident'>expect</span>(<span class='string'>&quot;Should have at least one unit&quot;</span>)
+    .<span class='ident'>expect</span>(<span class='string'>&quot;and it should parse OK&quot;</span>);
+
+<span class='comment'>// Parse the abbreviations for this compilation unit.</span>
+<span class='kw'>let</span> <span class='ident'>abbrevs</span> <span class='op'>=</span> <span class='ident'>unit</span>.<span class='ident'>abbreviations</span>(<span class='ident'>debug_abbrev</span>)
+    .<span class='ident'>expect</span>(<span class='string'>&quot;Should parse the abbreviations OK&quot;</span>);
+
+<span class='comment'>// Get a cursor for iterating over this unit&#39;s entries.</span>
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>entries</span> <span class='op'>=</span> <span class='ident'>unit</span>.<span class='ident'>entries</span>(<span class='kw-2'>&amp;</span><span class='ident'>abbrevs</span>);
+
+<span class='comment'>// Keep iterating entries while the cursor is not exhausted.</span>
+<span class='kw'>while</span> <span class='kw'>let</span> <span class='prelude-val'>Some</span>((_, <span class='ident'>entry</span>)) <span class='op'>=</span> <span class='ident'>entries</span>.<span class='ident'>next_dfs</span>().<span class='ident'>expect</span>(<span class='string'>&quot;Should parse next entry&quot;</span>) {
+    <span class='comment'>// If we find an entry for a function, print it.</span>
+    <span class='kw'>if</span> <span class='ident'>entry</span>.<span class='ident'>tag</span>() <span class='op'>==</span> <span class='ident'>gimli</span>::<span class='ident'>DW_TAG_subprogram</span> {
+        <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Found a function: {:?}&quot;</span>, <span class='ident'>entry</span>);
+    }
+}</pre>
+
+<p>See the
+<a href="https://github.com/fitzgen/gimli/blob/master/examples/dwarfdump.rs"><code>examples/dwarfdump.rs</code></a>
+program for a complete example program.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Abbreviation.html'
+                                  title='gimli::Abbreviation'>Abbreviation</a></td>
+                           <td class='docblock short'>
+                                <p>An abbreviation describes the shape of a <code>DebuggingInformationEntry</code>&#39;s type:
+its code, tag type, whether it has children, and its set of attributes.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Abbreviations.html'
+                                  title='gimli::Abbreviations'>Abbreviations</a></td>
+                           <td class='docblock short'>
+                                <p>A set of type abbreviations.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.ArangeEntry.html'
+                                  title='gimli::ArangeEntry'>ArangeEntry</a></td>
+                           <td class='docblock short'>
+                                <p>A single parsed arange.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.ArangeEntryIter.html'
+                                  title='gimli::ArangeEntryIter'>ArangeEntryIter</a></td>
+                           <td class='docblock short'>
+                                <p>An iterator over the aranges from a .debug_aranges section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Attribute.html'
+                                  title='gimli::Attribute'>Attribute</a></td>
+                           <td class='docblock short'>
+                                <p>An attribute in a <code>DebuggingInformationEntry</code>, consisting of a name and
+associated value.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.AttributeSpecification.html'
+                                  title='gimli::AttributeSpecification'>AttributeSpecification</a></td>
+                           <td class='docblock short'>
+                                <p>The description of an attribute in an abbreviated type. It is a pair of name
+and form.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.AttrsIter.html'
+                                  title='gimli::AttrsIter'>AttrsIter</a></td>
+                           <td class='docblock short'>
+                                <p>An iterator over a particular entry&#39;s attributes.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugAbbrev.html'
+                                  title='gimli::DebugAbbrev'>DebugAbbrev</a></td>
+                           <td class='docblock short'>
+                                <p>The <code>DebugAbbrev</code> struct represents the abbreviations describing
+<code>DebuggingInformationEntry</code>s&#39; attribute names and forms found in the
+<code>.debug_abbrev</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugAbbrevOffset.html'
+                                  title='gimli::DebugAbbrevOffset'>DebugAbbrevOffset</a></td>
+                           <td class='docblock short'>
+                                <p>An offset into the <code>.debug_abbrev</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugAranges.html'
+                                  title='gimli::DebugAranges'>DebugAranges</a></td>
+                           <td class='docblock short'>
+                                <p>The <code>DebugAranges</code> struct represents the DWARF address range information
+found in the <code>.debug_aranges</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugInfo.html'
+                                  title='gimli::DebugInfo'>DebugInfo</a></td>
+                           <td class='docblock short'>
+                                <p>The <code>DebugInfo</code> struct represents the DWARF debugging information found in
+the <code>.debug_info</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugInfoOffset.html'
+                                  title='gimli::DebugInfoOffset'>DebugInfoOffset</a></td>
+                           <td class='docblock short'>
+                                <p>An offset into the <code>.debug_info</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugLine.html'
+                                  title='gimli::DebugLine'>DebugLine</a></td>
+                           <td class='docblock short'>
+                                <p>The <code>DebugLine</code> struct contains the source location to instruction mapping
+found in the <code>.debug_line</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugLineOffset.html'
+                                  title='gimli::DebugLineOffset'>DebugLineOffset</a></td>
+                           <td class='docblock short'>
+                                <p>An offset into the <code>.debug_line</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugLocOffset.html'
+                                  title='gimli::DebugLocOffset'>DebugLocOffset</a></td>
+                           <td class='docblock short'>
+                                <p>An offset into the <code>.debug_loc</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugMacinfoOffset.html'
+                                  title='gimli::DebugMacinfoOffset'>DebugMacinfoOffset</a></td>
+                           <td class='docblock short'>
+                                <p>An offset into the <code>.debug_macinfo</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugStr.html'
+                                  title='gimli::DebugStr'>DebugStr</a></td>
+                           <td class='docblock short'>
+                                <p>The <code>DebugStr</code> struct represents the DWARF strings
+found in the <code>.debug_str</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugStrOffset.html'
+                                  title='gimli::DebugStrOffset'>DebugStrOffset</a></td>
+                           <td class='docblock short'>
+                                <p>An offset into the <code>.debug_str</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugTypes.html'
+                                  title='gimli::DebugTypes'>DebugTypes</a></td>
+                           <td class='docblock short'>
+                                <p>The <code>DebugTypes</code> struct represents the DWARF type information
+found in the <code>.debug_types</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebugTypesOffset.html'
+                                  title='gimli::DebugTypesOffset'>DebugTypesOffset</a></td>
+                           <td class='docblock short'>
+                                <p>An offset into the <code>.debug_types</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DebuggingInformationEntry.html'
+                                  title='gimli::DebuggingInformationEntry'>DebuggingInformationEntry</a></td>
+                           <td class='docblock short'>
+                                <p>A Debugging Information Entry (DIE).</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DwAt.html'
+                                  title='gimli::DwAt'>DwAt</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DwChildren.html'
+                                  title='gimli::DwChildren'>DwChildren</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DwForm.html'
+                                  title='gimli::DwForm'>DwForm</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DwLne.html'
+                                  title='gimli::DwLne'>DwLne</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DwLns.html'
+                                  title='gimli::DwLns'>DwLns</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.DwTag.html'
+                                  title='gimli::DwTag'>DwTag</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.EndianBuf.html'
+                                  title='gimli::EndianBuf'>EndianBuf</a></td>
+                           <td class='docblock short'>
+                                <p>A <code>&amp;[u8]</code> slice with compile-time endianity metadata.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.EntriesCursor.html'
+                                  title='gimli::EntriesCursor'>EntriesCursor</a></td>
+                           <td class='docblock short'>
+                                <p>A cursor into the Debugging Information Entries tree for a compilation unit.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.FileEntry.html'
+                                  title='gimli::FileEntry'>FileEntry</a></td>
+                           <td class='docblock short'>
+                                <p>An entry in the <code>LineNumberProgramHeader</code>&#39;s <code>file_names</code> set.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.LineNumberProgramHeader.html'
+                                  title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a></td>
+                           <td class='docblock short'>
+                                <p>A header for a line number program in the <code>.debug_line</code> section, as defined
+in section 6.2.4 of the standard.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.LineNumberRow.html'
+                                  title='gimli::LineNumberRow'>LineNumberRow</a></td>
+                           <td class='docblock short'>
+                                <p>A row in the line number program&#39;s resulting matrix.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.OpcodesIter.html'
+                                  title='gimli::OpcodesIter'>OpcodesIter</a></td>
+                           <td class='docblock short'>
+                                <p>An iterator yielding parsed opcodes.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.StateMachine.html'
+                                  title='gimli::StateMachine'>StateMachine</a></td>
+                           <td class='docblock short'>
+                                <p>Executes a <code>LineNumberProgram</code> to recreate the matrix mapping to and from
+instructions to source locations.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.TypeUnitHeader.html'
+                                  title='gimli::TypeUnitHeader'>TypeUnitHeader</a></td>
+                           <td class='docblock short'>
+                                <p>The header of a type unit&#39;s debugging information.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.TypeUnitHeadersIter.html'
+                                  title='gimli::TypeUnitHeadersIter'>TypeUnitHeadersIter</a></td>
+                           <td class='docblock short'>
+                                <p>An iterator over the type-units of this <code>.debug_types</code> section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.UnitHeader.html'
+                                  title='gimli::UnitHeader'>UnitHeader</a></td>
+                           <td class='docblock short'>
+                                <p>The header of a compilation unit&#39;s debugging information.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.UnitHeadersIter.html'
+                                  title='gimli::UnitHeadersIter'>UnitHeadersIter</a></td>
+                           <td class='docblock short'>
+                                <p>An iterator over the compilation- and partial-units of a section.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.UnitOffset.html'
+                                  title='gimli::UnitOffset'>UnitOffset</a></td>
+                           <td class='docblock short'>
+                                <p>An offset into the current compilation or type unit.</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.AttributeValue.html'
+                                  title='gimli::AttributeValue'>AttributeValue</a></td>
+                           <td class='docblock short'>
+                                <p>The value of an attribute in a <code>DebuggingInformationEntry</code>.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.BigEndian.html'
+                                  title='gimli::BigEndian'>BigEndian</a></td>
+                           <td class='docblock short'>
+                                <p>Big endian byte order.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.ColumnType.html'
+                                  title='gimli::ColumnType'>ColumnType</a></td>
+                           <td class='docblock short'>
+                                <p>The type of column that a row is referring to.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Error.html'
+                                  title='gimli::Error'>Error</a></td>
+                           <td class='docblock short'>
+                                <p>An error that occurred when parsing.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Format.html'
+                                  title='gimli::Format'>Format</a></td>
+                           <td class='docblock short'>
+                                <p>Whether the format of a compilation unit is 32- or 64-bit.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.LittleEndian.html'
+                                  title='gimli::LittleEndian'>LittleEndian</a></td>
+                           <td class='docblock short'>
+                                <p>Little endian byte order.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='enum' href='enum.Opcode.html'
+                                  title='gimli::Opcode'>Opcode</a></td>
+                           <td class='docblock short'>
+                                <p>A parsed line number program opcode.</p>
+                           </td>
+                       </tr></table><h2 id='constants' class='section-header'><a href="#constants">Constants</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_abstract_origin.html'
+                                  title='gimli::DW_AT_abstract_origin'>DW_AT_abstract_origin</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_accessibility.html'
+                                  title='gimli::DW_AT_accessibility'>DW_AT_accessibility</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_address_class.html'
+                                  title='gimli::DW_AT_address_class'>DW_AT_address_class</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_allocated.html'
+                                  title='gimli::DW_AT_allocated'>DW_AT_allocated</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_artificial.html'
+                                  title='gimli::DW_AT_artificial'>DW_AT_artificial</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_associated.html'
+                                  title='gimli::DW_AT_associated'>DW_AT_associated</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_base_types.html'
+                                  title='gimli::DW_AT_base_types'>DW_AT_base_types</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_binary_scale.html'
+                                  title='gimli::DW_AT_binary_scale'>DW_AT_binary_scale</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_bit_offset.html'
+                                  title='gimli::DW_AT_bit_offset'>DW_AT_bit_offset</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_bit_size.html'
+                                  title='gimli::DW_AT_bit_size'>DW_AT_bit_size</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_bit_stride.html'
+                                  title='gimli::DW_AT_bit_stride'>DW_AT_bit_stride</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_byte_size.html'
+                                  title='gimli::DW_AT_byte_size'>DW_AT_byte_size</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_byte_stride.html'
+                                  title='gimli::DW_AT_byte_stride'>DW_AT_byte_stride</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_call_column.html'
+                                  title='gimli::DW_AT_call_column'>DW_AT_call_column</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_call_file.html'
+                                  title='gimli::DW_AT_call_file'>DW_AT_call_file</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_call_line.html'
+                                  title='gimli::DW_AT_call_line'>DW_AT_call_line</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_calling_convention.html'
+                                  title='gimli::DW_AT_calling_convention'>DW_AT_calling_convention</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_common_reference.html'
+                                  title='gimli::DW_AT_common_reference'>DW_AT_common_reference</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_comp_dir.html'
+                                  title='gimli::DW_AT_comp_dir'>DW_AT_comp_dir</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_const_expr.html'
+                                  title='gimli::DW_AT_const_expr'>DW_AT_const_expr</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_const_value.html'
+                                  title='gimli::DW_AT_const_value'>DW_AT_const_value</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_containing_type.html'
+                                  title='gimli::DW_AT_containing_type'>DW_AT_containing_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_count.html'
+                                  title='gimli::DW_AT_count'>DW_AT_count</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_data_bit_offset.html'
+                                  title='gimli::DW_AT_data_bit_offset'>DW_AT_data_bit_offset</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_data_location.html'
+                                  title='gimli::DW_AT_data_location'>DW_AT_data_location</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_data_member_location.html'
+                                  title='gimli::DW_AT_data_member_location'>DW_AT_data_member_location</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_decimal_scale.html'
+                                  title='gimli::DW_AT_decimal_scale'>DW_AT_decimal_scale</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_decimal_sign.html'
+                                  title='gimli::DW_AT_decimal_sign'>DW_AT_decimal_sign</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_decl_column.html'
+                                  title='gimli::DW_AT_decl_column'>DW_AT_decl_column</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_decl_file.html'
+                                  title='gimli::DW_AT_decl_file'>DW_AT_decl_file</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_decl_line.html'
+                                  title='gimli::DW_AT_decl_line'>DW_AT_decl_line</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_declaration.html'
+                                  title='gimli::DW_AT_declaration'>DW_AT_declaration</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_default_value.html'
+                                  title='gimli::DW_AT_default_value'>DW_AT_default_value</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_description.html'
+                                  title='gimli::DW_AT_description'>DW_AT_description</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_digit_count.html'
+                                  title='gimli::DW_AT_digit_count'>DW_AT_digit_count</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_discr.html'
+                                  title='gimli::DW_AT_discr'>DW_AT_discr</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_discr_list.html'
+                                  title='gimli::DW_AT_discr_list'>DW_AT_discr_list</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_discr_value.html'
+                                  title='gimli::DW_AT_discr_value'>DW_AT_discr_value</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_elemental.html'
+                                  title='gimli::DW_AT_elemental'>DW_AT_elemental</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_encoding.html'
+                                  title='gimli::DW_AT_encoding'>DW_AT_encoding</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_endianity.html'
+                                  title='gimli::DW_AT_endianity'>DW_AT_endianity</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_entry_pc.html'
+                                  title='gimli::DW_AT_entry_pc'>DW_AT_entry_pc</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_enum_class.html'
+                                  title='gimli::DW_AT_enum_class'>DW_AT_enum_class</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_explicit.html'
+                                  title='gimli::DW_AT_explicit'>DW_AT_explicit</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_extension.html'
+                                  title='gimli::DW_AT_extension'>DW_AT_extension</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_external.html'
+                                  title='gimli::DW_AT_external'>DW_AT_external</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_frame_base.html'
+                                  title='gimli::DW_AT_frame_base'>DW_AT_frame_base</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_friend.html'
+                                  title='gimli::DW_AT_friend'>DW_AT_friend</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_hi_user.html'
+                                  title='gimli::DW_AT_hi_user'>DW_AT_hi_user</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_high_pc.html'
+                                  title='gimli::DW_AT_high_pc'>DW_AT_high_pc</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_identifier_case.html'
+                                  title='gimli::DW_AT_identifier_case'>DW_AT_identifier_case</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_import.html'
+                                  title='gimli::DW_AT_import'>DW_AT_import</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_inline.html'
+                                  title='gimli::DW_AT_inline'>DW_AT_inline</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_is_optional.html'
+                                  title='gimli::DW_AT_is_optional'>DW_AT_is_optional</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_language.html'
+                                  title='gimli::DW_AT_language'>DW_AT_language</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_linkage_name.html'
+                                  title='gimli::DW_AT_linkage_name'>DW_AT_linkage_name</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_lo_user.html'
+                                  title='gimli::DW_AT_lo_user'>DW_AT_lo_user</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_location.html'
+                                  title='gimli::DW_AT_location'>DW_AT_location</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_low_pc.html'
+                                  title='gimli::DW_AT_low_pc'>DW_AT_low_pc</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_lower_bound.html'
+                                  title='gimli::DW_AT_lower_bound'>DW_AT_lower_bound</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_macro_info.html'
+                                  title='gimli::DW_AT_macro_info'>DW_AT_macro_info</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_main_subprogram.html'
+                                  title='gimli::DW_AT_main_subprogram'>DW_AT_main_subprogram</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_mutable.html'
+                                  title='gimli::DW_AT_mutable'>DW_AT_mutable</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_name.html'
+                                  title='gimli::DW_AT_name'>DW_AT_name</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_namelist_item.html'
+                                  title='gimli::DW_AT_namelist_item'>DW_AT_namelist_item</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_null.html'
+                                  title='gimli::DW_AT_null'>DW_AT_null</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_object_pointer.html'
+                                  title='gimli::DW_AT_object_pointer'>DW_AT_object_pointer</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_ordering.html'
+                                  title='gimli::DW_AT_ordering'>DW_AT_ordering</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_picture_string.html'
+                                  title='gimli::DW_AT_picture_string'>DW_AT_picture_string</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_priority.html'
+                                  title='gimli::DW_AT_priority'>DW_AT_priority</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_producer.html'
+                                  title='gimli::DW_AT_producer'>DW_AT_producer</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_prototyped.html'
+                                  title='gimli::DW_AT_prototyped'>DW_AT_prototyped</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_pure.html'
+                                  title='gimli::DW_AT_pure'>DW_AT_pure</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_ranges.html'
+                                  title='gimli::DW_AT_ranges'>DW_AT_ranges</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_recursive.html'
+                                  title='gimli::DW_AT_recursive'>DW_AT_recursive</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_return_addr.html'
+                                  title='gimli::DW_AT_return_addr'>DW_AT_return_addr</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_segment.html'
+                                  title='gimli::DW_AT_segment'>DW_AT_segment</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_sibling.html'
+                                  title='gimli::DW_AT_sibling'>DW_AT_sibling</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_signature.html'
+                                  title='gimli::DW_AT_signature'>DW_AT_signature</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_small.html'
+                                  title='gimli::DW_AT_small'>DW_AT_small</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_specification.html'
+                                  title='gimli::DW_AT_specification'>DW_AT_specification</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_start_scope.html'
+                                  title='gimli::DW_AT_start_scope'>DW_AT_start_scope</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_static_link.html'
+                                  title='gimli::DW_AT_static_link'>DW_AT_static_link</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_stmt_list.html'
+                                  title='gimli::DW_AT_stmt_list'>DW_AT_stmt_list</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_string_length.html'
+                                  title='gimli::DW_AT_string_length'>DW_AT_string_length</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_threads_scaled.html'
+                                  title='gimli::DW_AT_threads_scaled'>DW_AT_threads_scaled</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_trampoline.html'
+                                  title='gimli::DW_AT_trampoline'>DW_AT_trampoline</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_type.html'
+                                  title='gimli::DW_AT_type'>DW_AT_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_upper_bound.html'
+                                  title='gimli::DW_AT_upper_bound'>DW_AT_upper_bound</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_use_UTF8.html'
+                                  title='gimli::DW_AT_use_UTF8'>DW_AT_use_UTF8</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_use_location.html'
+                                  title='gimli::DW_AT_use_location'>DW_AT_use_location</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_variable_parameter.html'
+                                  title='gimli::DW_AT_variable_parameter'>DW_AT_variable_parameter</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_virtuality.html'
+                                  title='gimli::DW_AT_virtuality'>DW_AT_virtuality</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_visibility.html'
+                                  title='gimli::DW_AT_visibility'>DW_AT_visibility</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_AT_vtable_elem_location.html'
+                                  title='gimli::DW_AT_vtable_elem_location'>DW_AT_vtable_elem_location</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_CHILDREN_no.html'
+                                  title='gimli::DW_CHILDREN_no'>DW_CHILDREN_no</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_CHILDREN_yes.html'
+                                  title='gimli::DW_CHILDREN_yes'>DW_CHILDREN_yes</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_addr.html'
+                                  title='gimli::DW_FORM_addr'>DW_FORM_addr</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_block.html'
+                                  title='gimli::DW_FORM_block'>DW_FORM_block</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_block1.html'
+                                  title='gimli::DW_FORM_block1'>DW_FORM_block1</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_block2.html'
+                                  title='gimli::DW_FORM_block2'>DW_FORM_block2</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_block4.html'
+                                  title='gimli::DW_FORM_block4'>DW_FORM_block4</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_data1.html'
+                                  title='gimli::DW_FORM_data1'>DW_FORM_data1</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_data2.html'
+                                  title='gimli::DW_FORM_data2'>DW_FORM_data2</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_data4.html'
+                                  title='gimli::DW_FORM_data4'>DW_FORM_data4</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_data8.html'
+                                  title='gimli::DW_FORM_data8'>DW_FORM_data8</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_exprloc.html'
+                                  title='gimli::DW_FORM_exprloc'>DW_FORM_exprloc</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_flag.html'
+                                  title='gimli::DW_FORM_flag'>DW_FORM_flag</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_flag_present.html'
+                                  title='gimli::DW_FORM_flag_present'>DW_FORM_flag_present</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_indirect.html'
+                                  title='gimli::DW_FORM_indirect'>DW_FORM_indirect</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_null.html'
+                                  title='gimli::DW_FORM_null'>DW_FORM_null</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_ref1.html'
+                                  title='gimli::DW_FORM_ref1'>DW_FORM_ref1</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_ref2.html'
+                                  title='gimli::DW_FORM_ref2'>DW_FORM_ref2</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_ref4.html'
+                                  title='gimli::DW_FORM_ref4'>DW_FORM_ref4</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_ref8.html'
+                                  title='gimli::DW_FORM_ref8'>DW_FORM_ref8</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_ref_addr.html'
+                                  title='gimli::DW_FORM_ref_addr'>DW_FORM_ref_addr</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_ref_sig8.html'
+                                  title='gimli::DW_FORM_ref_sig8'>DW_FORM_ref_sig8</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_ref_udata.html'
+                                  title='gimli::DW_FORM_ref_udata'>DW_FORM_ref_udata</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_sdata.html'
+                                  title='gimli::DW_FORM_sdata'>DW_FORM_sdata</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_sec_offset.html'
+                                  title='gimli::DW_FORM_sec_offset'>DW_FORM_sec_offset</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_string.html'
+                                  title='gimli::DW_FORM_string'>DW_FORM_string</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_strp.html'
+                                  title='gimli::DW_FORM_strp'>DW_FORM_strp</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_FORM_udata.html'
+                                  title='gimli::DW_FORM_udata'>DW_FORM_udata</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNE_define_file.html'
+                                  title='gimli::DW_LNE_define_file'>DW_LNE_define_file</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNE_end_sequence.html'
+                                  title='gimli::DW_LNE_end_sequence'>DW_LNE_end_sequence</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNE_hi_user.html'
+                                  title='gimli::DW_LNE_hi_user'>DW_LNE_hi_user</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNE_lo_user.html'
+                                  title='gimli::DW_LNE_lo_user'>DW_LNE_lo_user</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNE_set_address.html'
+                                  title='gimli::DW_LNE_set_address'>DW_LNE_set_address</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNE_set_discriminator.html'
+                                  title='gimli::DW_LNE_set_discriminator'>DW_LNE_set_discriminator</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_advance_line.html'
+                                  title='gimli::DW_LNS_advance_line'>DW_LNS_advance_line</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_advance_pc.html'
+                                  title='gimli::DW_LNS_advance_pc'>DW_LNS_advance_pc</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_const_add_pc.html'
+                                  title='gimli::DW_LNS_const_add_pc'>DW_LNS_const_add_pc</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_copy.html'
+                                  title='gimli::DW_LNS_copy'>DW_LNS_copy</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_fixed_advance_pc.html'
+                                  title='gimli::DW_LNS_fixed_advance_pc'>DW_LNS_fixed_advance_pc</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_negate_stmt.html'
+                                  title='gimli::DW_LNS_negate_stmt'>DW_LNS_negate_stmt</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_set_basic_block.html'
+                                  title='gimli::DW_LNS_set_basic_block'>DW_LNS_set_basic_block</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_set_column.html'
+                                  title='gimli::DW_LNS_set_column'>DW_LNS_set_column</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_set_epilogue_begin.html'
+                                  title='gimli::DW_LNS_set_epilogue_begin'>DW_LNS_set_epilogue_begin</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_set_file.html'
+                                  title='gimli::DW_LNS_set_file'>DW_LNS_set_file</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_set_isa.html'
+                                  title='gimli::DW_LNS_set_isa'>DW_LNS_set_isa</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_LNS_set_prologue_end.html'
+                                  title='gimli::DW_LNS_set_prologue_end'>DW_LNS_set_prologue_end</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_access_declaration.html'
+                                  title='gimli::DW_TAG_access_declaration'>DW_TAG_access_declaration</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_array_type.html'
+                                  title='gimli::DW_TAG_array_type'>DW_TAG_array_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_base_type.html'
+                                  title='gimli::DW_TAG_base_type'>DW_TAG_base_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_catch_block.html'
+                                  title='gimli::DW_TAG_catch_block'>DW_TAG_catch_block</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_class_type.html'
+                                  title='gimli::DW_TAG_class_type'>DW_TAG_class_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_common_block.html'
+                                  title='gimli::DW_TAG_common_block'>DW_TAG_common_block</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_common_inclusion.html'
+                                  title='gimli::DW_TAG_common_inclusion'>DW_TAG_common_inclusion</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_compile_unit.html'
+                                  title='gimli::DW_TAG_compile_unit'>DW_TAG_compile_unit</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_condition.html'
+                                  title='gimli::DW_TAG_condition'>DW_TAG_condition</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_const_type.html'
+                                  title='gimli::DW_TAG_const_type'>DW_TAG_const_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_constant.html'
+                                  title='gimli::DW_TAG_constant'>DW_TAG_constant</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_dwarf_procedure.html'
+                                  title='gimli::DW_TAG_dwarf_procedure'>DW_TAG_dwarf_procedure</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_entry_point.html'
+                                  title='gimli::DW_TAG_entry_point'>DW_TAG_entry_point</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_enumeration_type.html'
+                                  title='gimli::DW_TAG_enumeration_type'>DW_TAG_enumeration_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_enumerator.html'
+                                  title='gimli::DW_TAG_enumerator'>DW_TAG_enumerator</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_file_type.html'
+                                  title='gimli::DW_TAG_file_type'>DW_TAG_file_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_formal_parameter.html'
+                                  title='gimli::DW_TAG_formal_parameter'>DW_TAG_formal_parameter</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_friend.html'
+                                  title='gimli::DW_TAG_friend'>DW_TAG_friend</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_hi_user.html'
+                                  title='gimli::DW_TAG_hi_user'>DW_TAG_hi_user</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_imported_declaration.html'
+                                  title='gimli::DW_TAG_imported_declaration'>DW_TAG_imported_declaration</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_imported_module.html'
+                                  title='gimli::DW_TAG_imported_module'>DW_TAG_imported_module</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_imported_unit.html'
+                                  title='gimli::DW_TAG_imported_unit'>DW_TAG_imported_unit</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_inheritance.html'
+                                  title='gimli::DW_TAG_inheritance'>DW_TAG_inheritance</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_inlined_subroutine.html'
+                                  title='gimli::DW_TAG_inlined_subroutine'>DW_TAG_inlined_subroutine</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_interface_type.html'
+                                  title='gimli::DW_TAG_interface_type'>DW_TAG_interface_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_label.html'
+                                  title='gimli::DW_TAG_label'>DW_TAG_label</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_lexical_block.html'
+                                  title='gimli::DW_TAG_lexical_block'>DW_TAG_lexical_block</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_lo_user.html'
+                                  title='gimli::DW_TAG_lo_user'>DW_TAG_lo_user</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_member.html'
+                                  title='gimli::DW_TAG_member'>DW_TAG_member</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_module.html'
+                                  title='gimli::DW_TAG_module'>DW_TAG_module</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_namelist.html'
+                                  title='gimli::DW_TAG_namelist'>DW_TAG_namelist</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_namelist_item.html'
+                                  title='gimli::DW_TAG_namelist_item'>DW_TAG_namelist_item</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_namespace.html'
+                                  title='gimli::DW_TAG_namespace'>DW_TAG_namespace</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_null.html'
+                                  title='gimli::DW_TAG_null'>DW_TAG_null</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_packed_type.html'
+                                  title='gimli::DW_TAG_packed_type'>DW_TAG_packed_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_partial_unit.html'
+                                  title='gimli::DW_TAG_partial_unit'>DW_TAG_partial_unit</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_pointer_type.html'
+                                  title='gimli::DW_TAG_pointer_type'>DW_TAG_pointer_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_ptr_to_member_type.html'
+                                  title='gimli::DW_TAG_ptr_to_member_type'>DW_TAG_ptr_to_member_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_reference_type.html'
+                                  title='gimli::DW_TAG_reference_type'>DW_TAG_reference_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_restrict_type.html'
+                                  title='gimli::DW_TAG_restrict_type'>DW_TAG_restrict_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_rvalue_reference_type.html'
+                                  title='gimli::DW_TAG_rvalue_reference_type'>DW_TAG_rvalue_reference_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_set_type.html'
+                                  title='gimli::DW_TAG_set_type'>DW_TAG_set_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_shared_type.html'
+                                  title='gimli::DW_TAG_shared_type'>DW_TAG_shared_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_string_type.html'
+                                  title='gimli::DW_TAG_string_type'>DW_TAG_string_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_structure_type.html'
+                                  title='gimli::DW_TAG_structure_type'>DW_TAG_structure_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_subprogram.html'
+                                  title='gimli::DW_TAG_subprogram'>DW_TAG_subprogram</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_subrange_type.html'
+                                  title='gimli::DW_TAG_subrange_type'>DW_TAG_subrange_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_subroutine_type.html'
+                                  title='gimli::DW_TAG_subroutine_type'>DW_TAG_subroutine_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_template_alias.html'
+                                  title='gimli::DW_TAG_template_alias'>DW_TAG_template_alias</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_template_type_parameter.html'
+                                  title='gimli::DW_TAG_template_type_parameter'>DW_TAG_template_type_parameter</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_template_value_parameter.html'
+                                  title='gimli::DW_TAG_template_value_parameter'>DW_TAG_template_value_parameter</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_thrown_type.html'
+                                  title='gimli::DW_TAG_thrown_type'>DW_TAG_thrown_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_try_block.html'
+                                  title='gimli::DW_TAG_try_block'>DW_TAG_try_block</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_type_unit.html'
+                                  title='gimli::DW_TAG_type_unit'>DW_TAG_type_unit</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_typedef.html'
+                                  title='gimli::DW_TAG_typedef'>DW_TAG_typedef</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_union_type.html'
+                                  title='gimli::DW_TAG_union_type'>DW_TAG_union_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_unspecified_parameters.html'
+                                  title='gimli::DW_TAG_unspecified_parameters'>DW_TAG_unspecified_parameters</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_unspecified_type.html'
+                                  title='gimli::DW_TAG_unspecified_type'>DW_TAG_unspecified_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_variable.html'
+                                  title='gimli::DW_TAG_variable'>DW_TAG_variable</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_variant.html'
+                                  title='gimli::DW_TAG_variant'>DW_TAG_variant</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_variant_part.html'
+                                  title='gimli::DW_TAG_variant_part'>DW_TAG_variant_part</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_volatile_type.html'
+                                  title='gimli::DW_TAG_volatile_type'>DW_TAG_volatile_type</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='constant' href='constant.DW_TAG_with_stmt.html'
+                                  title='gimli::DW_TAG_with_stmt'>DW_TAG_with_stmt</a></td>
+                           <td class='docblock short'>
+                                
+                           </td>
+                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.Endianity.html'
+                                  title='gimli::Endianity'>Endianity</a></td>
+                           <td class='docblock short'>
+                                <p>A trait describing the endianity of some buffer.</p>
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class='type' href='type.ParseResult.html'
+                                  title='gimli::ParseResult'>ParseResult</a></td>
+                           <td class='docblock short'>
+                                <p>The result of a parse.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "gimli";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

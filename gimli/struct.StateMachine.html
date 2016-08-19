@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `StateMachine` struct in crate `gimli`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, StateMachine">
+
+    <title>gimli::StateMachine - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>gimli</a></p><script>window.sidebarCurrent = {name: 'StateMachine', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>gimli</a>::<wbr><a class='struct' href=''>StateMachine</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-2957' class='srclink' href='../src/gimli/src/line.rs.html#50-56' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct StateMachine&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span> {
+    // some fields omitted
+}</pre><div class='docblock'><p>Executes a <code>LineNumberProgram</code> to recreate the matrix mapping to and from
+instructions to source locations.</p>
+
+<p>&quot;The hypothetical machine used by a consumer of the line number information
+to expand the byte-coded instruction stream into a matrix of line number
+information.&quot; -- Section 6.2.1</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;Endian&gt; <a class='struct' href='../gimli/struct.StateMachine.html' title='gimli::StateMachine'>StateMachine</a>&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2963' class='srclink' href='../src/gimli/src/line.rs.html#58-225' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(header: <a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt;) -&gt; Self</code></h4>
+<div class='docblock'><p>Construct a new <code>StateMachine</code> for executing line programs and
+generating the line information matrix.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;Endian&gt; <a class='struct' href='../gimli/struct.StateMachine.html' title='gimli::StateMachine'>StateMachine</a>&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-3006' class='srclink' href='../src/gimli/src/line.rs.html#227-297' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.header' class='method'><code>fn <a href='#method.header' class='fnname'>header</a>(&amp;self) -&gt; &amp;<a class='struct' href='../gimli/struct.LineNumberProgramHeader.html' title='gimli::LineNumberProgramHeader'>LineNumberProgramHeader</a>&lt;'input,&nbsp;Endian&gt;</code></h4>
+<div class='docblock'><p>Get a reference to the header for this state machine&#39;s line number
+program.</p>
+</div><h4 id='method.next_row' class='method'><code>fn <a href='#method.next_row' class='fnname'>next_row</a>&lt;'me&gt;(&amp;'me mut self) -&gt; <a class='type' href='../gimli/type.ParseResult.html' title='gimli::ParseResult'>ParseResult</a>&lt;<a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../gimli/struct.LineNumberRow.html' title='gimli::LineNumberRow'>LineNumberRow</a>&lt;'me,&nbsp;'input,&nbsp;Endian&gt;&gt;&gt;</code></h4>
+<div class='docblock'><p>Parse and execute the next opcodes in the line number program until
+another row in the line number matrix is computed.</p>
+
+<p>The freshly computed row is returned as <code>Ok(Some(row))</code>. If the matrix
+is complete, and there are no more new rows in the line number matrix,
+then <code>Ok(None)</code> is returned. If there was an error parsing an opcode,
+then <code>Err(e)</code> is returned.</p>
+</div><h4 id='method.run_to_address' class='method'><code>fn <a href='#method.run_to_address' class='fnname'>run_to_address</a>&lt;'me&gt;(&amp;'me mut self, addr: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u64.html'>u64</a>) -&gt; <a class='type' href='../gimli/type.ParseResult.html' title='gimli::ParseResult'>ParseResult</a>&lt;<a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../gimli/struct.LineNumberRow.html' title='gimli::LineNumberRow'>LineNumberRow</a>&lt;'me,&nbsp;'input,&nbsp;Endian&gt;&gt;&gt;</code></h4>
+<div class='docblock'><p>Parse and execute opcodes until we reach a row matching <code>addr</code>, the end of the program,
+or an error.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'input,&nbsp;Endian:&nbsp;<a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../gimli/struct.StateMachine.html' title='gimli::StateMachine'>StateMachine</a>&lt;'input,&nbsp;Endian&gt; <span class='where'>where Endian: <a class='trait' href='../gimli/trait.Endianity.html' title='gimli::Endianity'>Endianity</a></span></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-2947' class='srclink' href='../src/gimli/src/line.rs.html#49' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "gimli";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
