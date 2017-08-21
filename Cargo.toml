@@ -22,7 +22,7 @@ fallible-iterator = "0.1.2"
 [dev-dependencies]
 getopts = "0.2"
 memmap = "0.5.2"
-object = "0.4.0"
+object = { path = "../object" }
 test-assembler = "0.1.3"
 
 [features]
