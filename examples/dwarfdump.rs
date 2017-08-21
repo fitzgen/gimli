@@ -20,6 +20,7 @@ use std::fmt::{self, Debug};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Error {
     GimliError(gimli::Error),
+    ObjectError(object::Error),
     IoError,
     MissingDIE,
 }
@@ -35,6 +36,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::GimliError(ref err) => err.description(),
+            Error::ObjectError(_) => "An error parsing the object file",
             Error::IoError => "An I/O error occurred while reading.",
             Error::MissingDIE => "Expected a DIE but none was found",
         }
@@ -45,6 +47,12 @@ impl error::Error for Error {
             Error::GimliError(ref err) => Some(err),
             _ => None,
         }
+    }
+}
+
+impl From<object::Error> for Error {
+    fn from(err: object::Error) -> Self {
+        Error::ObjectError(err)
     }
 }
 
